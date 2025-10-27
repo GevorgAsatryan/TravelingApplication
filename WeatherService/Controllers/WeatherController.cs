@@ -79,7 +79,7 @@ namespace WeatherService.Controllers
             }
             catch (Exception ex)
             {
-                return $"Request error: {ex.Message}";
+                return $"There is no weather data for this city";
             }
             return result;
         }
