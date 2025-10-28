@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using OpenAI;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Metrics;
 using System.Net.Http;
@@ -82,6 +81,38 @@ namespace TravelingApplication.Controllers
                 return content;
             }
 
+        }
+        [HttpGet("Book Hotel")]
+        public async Task<string> BookHotel([Required][FromQuery(Name = "Country or city")] string countryOrCity, [Required][DataType(DataType.Date)] DateTime checkin, [Required][DataType(DataType.Date)] DateTime checkout, [Required][Range(0, 30, ErrorMessage = "Adults must be between 0 and 30.")][FromQuery(Name = "Number of Adults")] int adults, [Required][Range(0, 10, ErrorMessage = "Children must be between 0 and 10.")][FromQuery(Name = "Number of children")] int children)
+        {
+            string url = "https://localhost:7077";
+            string endpoint = "Booking";
+            var bookingRequest = new
+            {
+                countryOrCity = countryOrCity,
+                checkin = checkin,
+                checkout = checkout,
+                adults = adults,
+                children = children
+            };
+
+            using (HttpClient httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new Uri(url);
+                string json = JsonSerializer.Serialize(bookingRequest);
+                StringContent stringContent = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await httpClient.PostAsync(endpoint, stringContent);
+                try
+                {
+                    response.EnsureSuccessStatusCode();
+                }
+                catch (Exception ex)
+                {
+                    return "Not Found";
+                }
+                var content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
         }
         [HttpGet("Additional Information")]
         public async Task<string> Information([Required][FromQuery(Name = "Country")] string country)
