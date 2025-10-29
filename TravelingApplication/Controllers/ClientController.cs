@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
+
 namespace TravelingApplication.Controllers
 {
     [ApiController]
@@ -112,6 +113,36 @@ namespace TravelingApplication.Controllers
                 }
                 var content = await response.Content.ReadAsStringAsync();
                 return content;
+            }
+        }
+        [HttpGet("Book Flight")]
+        public async Task Flight([Required][FromQuery(Name = "Flying from")] string fromCity, [Required][FromQuery(Name = "Flying to")] string toCity, [Required][FromQuery(Name = "Departing")] DateTime departing, [FromQuery(Name = "Returning")] DateTime? returning)
+        {
+            var flightDetails = new
+            {
+                fromCity = fromCity,
+                toCity = toCity,
+                departing = departing,
+                returning = returning,
+                tripType = ""
+            };
+            string url = "https://localhost:7044";
+            string endpoint = "/Booking";
+
+            using (HttpClient httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new Uri(url);
+                var json = JsonSerializer.Serialize(flightDetails);
+                StringContent stringContent = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await httpClient.PostAsync(endpoint, stringContent);
+                try
+                {
+                    response.EnsureSuccessStatusCode();
+                }
+                catch (Exception ex)
+                {
+                    NotFound();
+                }
             }
         }
         [HttpGet("Additional Information")]

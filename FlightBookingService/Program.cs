@@ -1,8 +1,5 @@
 
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-
-namespace TravelingApplication
+namespace FlightBookingService
 {
     public class Program
     {
@@ -13,20 +10,9 @@ namespace TravelingApplication
             // Add services to the container.
 
             builder.Services.AddControllers();
-            builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationMiddlewareResultHandler>();
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("")));
-
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(c =>
-            {
-                // Map DateTime to OpenAPI date format
-                c.MapType<DateTime>(() => new Microsoft.OpenApi.Models.OpenApiSchema
-                {
-                    Format = "date"
-                });
-            });
+            builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
