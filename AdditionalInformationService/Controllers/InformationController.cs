@@ -30,7 +30,7 @@ namespace AdditionalInformationService.Controllers
                        $"Google Map {informationDetails[0].maps.googleMaps} (Copy the URL and paste it into your browser.)\n" +
                        $"Area {informationDetails[0].area} square kilometre\n" +
                        $"Population {informationDetails[0].population}\n" +
-                       $"Flag {informationDetails[0].flags.alt} \n" +
+                       $"{informationDetails[0].flags.alt} \n" +
                        $"{informationDetails[0].flags.svg} (Copy the URL and paste it into your browser.)\n";
             }
         }

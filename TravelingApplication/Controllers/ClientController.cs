@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Metrics;
@@ -23,7 +24,8 @@ namespace TravelingApplication.Controllers
             var user = new User(name, email);
             string secretKey = "this_is_very_very_secret_key_012345";
             string token = TokenManagement.GenerateJwtToken(username, userEmail, secretKey);
-            return TokenManagement.ValidateToken(token, secretKey) + " " + $"{token}";
+            string validation = TokenManagement.ValidateToken(token, secretKey);
+            return "Your token is  " + $"{token}\n\n{validation}";
         }
 
         [HttpGet("Weather")]
@@ -45,7 +47,7 @@ namespace TravelingApplication.Controllers
                 }
                 catch (Exception ex)
                 {
-
+                    NotFound();
                 }
                 var content = await response.Content.ReadAsStringAsync();
                 return content;
@@ -76,7 +78,7 @@ namespace TravelingApplication.Controllers
                 }
                 catch (Exception ex)
                 {
-                    return "Not found";
+                    NotFound();
                 }
                 var content = await response.Content.ReadAsStringAsync();
                 return content;
@@ -84,6 +86,7 @@ namespace TravelingApplication.Controllers
 
         }
         [HttpGet("Book Hotel")]
+        [Authorize]
         public async Task<string> BookHotel([Required][FromQuery(Name = "Country or city")] string countryOrCity, [Required][DataType(DataType.Date)] DateTime checkin, [Required][DataType(DataType.Date)] DateTime checkout, [Required][Range(0, 30, ErrorMessage = "Adults must be between 0 and 30.")][FromQuery(Name = "Number of Adults")] int adults, [Required][Range(0, 10, ErrorMessage = "Children must be between 0 and 10.")][FromQuery(Name = "Number of children")] int children)
         {
             string url = "https://localhost:7077";
@@ -116,7 +119,8 @@ namespace TravelingApplication.Controllers
             }
         }
         [HttpGet("Book Flight")]
-        public async Task Flight([Required][FromQuery(Name = "Flying from")] string fromCity, [Required][FromQuery(Name = "Flying to")] string toCity, [Required][FromQuery(Name = "Departing")] DateTime departing, [FromQuery(Name = "Returning")] DateTime? returning)
+        [Authorize]
+        public async Task Flight([Required][FromQuery(Name = "Flying from")] string fromCity, [Required][FromQuery(Name = "Flying to")] string toCity, [Required][FromQuery(Name = "Departing")] DateTime departing, [FromQuery(Name = "Returning (Skip if you want one way)")] DateTime? returning)
         {
             var flightDetails = new
             {

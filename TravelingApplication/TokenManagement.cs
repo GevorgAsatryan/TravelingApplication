@@ -22,7 +22,7 @@ namespace TravelingApplication
                 issuer: "traveling",
                 audience: "users",
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(1),
+                expires: DateTime.UtcNow.AddMinutes(10),
                 signingCredentials: credentials
             );
 
@@ -48,7 +48,7 @@ namespace TravelingApplication
             try
             {
                 tokenHandler.ValidateToken(token, parameters, out SecurityToken validatedToken);
-                return "Token is valied";
+                return "Token is valid for 10 minutes.";
             }
             catch(Exception ex)
             {
