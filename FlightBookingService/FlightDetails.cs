@@ -9,6 +9,5 @@ namespace FlightBookingService
         public string ToCity { get; set; }
         public DateTime Departing { get; set; }
         public DateTime? Returning { get; set; }
-        public string TripType { get; set; }
     }
 }

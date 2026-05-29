@@ -12,13 +12,13 @@ namespace FlightBookingService.Controllers
         {
             string url = "";
 
-            if (flightDetails.Returning is null)
+            if (flightDetails.Returning is not null)
             {
-                url = $"https://www.expedia.com/Flights-Search?leg1=from%3A{flightDetails.FromCity}%2Cto%3A{flightDetails.ToCity}%2Cdeparture%3A{flightDetails.Departing}TANYT%2CfromType%3AU%2CtoType%3AU&mode=search&options=carrier%3A%2Ccabinclass%3Aeconomy%2Cmaxhops%3A1%2Cnopenalty%3AN&pageId=0&trip=oneway\r\n";
+                url = $"https://www.google.com/travel/flights?q=from%3A{flightDetails.FromCity}%20to%3A{flightDetails.ToCity}%20on%20{flightDetails.Departing:yyyy-MM-dd}%20return%20{flightDetails.Returning:yyyy-MM-dd}\r\n";
             }
             else
             {
-                url = $"https://www.expedia.com/Flights-Search?leg1=from:{flightDetails.FromCity},to:{flightDetails.ToCity},departure:{flightDetails.Departing}TANYT,fromType:U,toType:U&leg2=from:{flightDetails.ToCity},to:{flightDetails.FromCity},departure:{flightDetails.Returning}TANYT,fromType:U,toType:U&mode=search&options=carrier:,cabinclass:economy,maxhops:1,nopenalty:N&pageId=0&passengers=adults:0,children:0,infantinlap:0&trip=Roundtrip\r\n";
+                url = $"https://www.google.com/travel/flights?q=from%3A{flightDetails.FromCity}%20to%3A{flightDetails.ToCity}%20on%20{flightDetails.Departing:yyyy-MM-dd}\r\n";
             }
             
             

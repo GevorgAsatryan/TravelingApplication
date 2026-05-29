@@ -55,7 +55,7 @@ namespace TravelingApplication
                      });
                 });
 
-            var key = Encoding.ASCII.GetBytes("this_is_very_very_secret_key_012345");
+            var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:SecretKey"]);
 
             builder.Services.AddAuthentication(options =>
             {
@@ -74,9 +74,55 @@ namespace TravelingApplication
                     ValidAudience = "users",
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
+            
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        context.HandleResponse();
+            
+                        context.Response.StatusCode = 401;
+                        context.Response.ContentType = "application/json";
+            
+                        var result = new
+                        {
+                            message = "You are not authorized. Please login first."
+                        };
+            
+                        await context.Response.WriteAsJsonAsync(result);
+                    }
+                };
             });
 
             builder.Services.AddAuthorization();
+
+            builder.Services.AddHttpClient("WeatherClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7028/");
+            });
+
+            builder.Services.AddHttpClient("ExchangeClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7140/");
+            });
+
+            builder.Services.AddHttpClient("HotelClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7077/");
+            });
+
+            builder.Services.AddHttpClient("FlightClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7044/");
+            });
+
+            builder.Services.AddHttpClient("InformationClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7163/");
+            });
+
+            builder.Services.Configure<JwtSettings>(
+            builder.Configuration.GetSection("JwtSettings"));
 
             var app = builder.Build();
 
