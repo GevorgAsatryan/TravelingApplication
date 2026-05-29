@@ -25,6 +25,7 @@ namespace WeatherService
 
             app.UseHttpsRedirection();
 
+            //this is authorization
             app.UseAuthorization();
 
 
