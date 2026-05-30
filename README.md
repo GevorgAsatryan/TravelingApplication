@@ -30,7 +30,7 @@ When the user enters a destination (city or country), check-in and check-out dat
 
 Flights Booking Service
 
-When the user enters flight details such as origin, destination, and travel dates, the application opens an external Expedia page with the details prefilled, enabling the user to proceed with booking directly on Expedia.
+When the user enters flight details such as origin, destination, and travel dates, the application opens an external Google Flights page with the details prefilled, enabling the user to proceed with booking directly on Google Flights.
 
 Additional Information Service
 
