@@ -54,7 +54,7 @@ How It Works
 
  •Opens Booking.com with prefilled hotel booking details via the Hotel Booking Service
 
- •Opens Expedia with prefilled flight  booking details via the Flights Booking Service
+ •Opens Google Flights with prefilled flight  booking details via the Flights Booking Service
 
  •Displays detailed country information via the Additional Information Service
 
