@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 namespace TravelingApplication
 {
@@ -123,6 +125,11 @@ namespace TravelingApplication
 
             builder.Services.Configure<JwtSettings>(
             builder.Configuration.GetSection("JwtSettings"));
+
+            builder.Services.AddFluentValidationAutoValidation();
+            builder.Services.AddFluentValidationClientsideAdapters();
+            builder.Services.AddValidatorsFromAssemblyContaining<GetWeatherRequestModelValidator>();
+
 
             var app = builder.Build();
 
