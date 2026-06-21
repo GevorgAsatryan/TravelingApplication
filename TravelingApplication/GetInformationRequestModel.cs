@@ -5,7 +5,6 @@ namespace TravelingApplication
 {
     public class GetInformationRequestModel
     {
-        [Required]
         [FromQuery(Name = "Country")]
         public string Country { get; set; }
     }

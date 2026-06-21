@@ -129,6 +129,10 @@ namespace TravelingApplication
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddFluentValidationClientsideAdapters();
             builder.Services.AddValidatorsFromAssemblyContaining<GetWeatherRequestModelValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<GetInformationRequestModelValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<GetHotelBookingRequestModelValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<GetFlightBookingRequestModelValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<GetExchangeRequestModelValidator>();
 
 
             var app = builder.Build();
