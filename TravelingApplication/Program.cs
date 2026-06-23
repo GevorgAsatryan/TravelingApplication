@@ -20,8 +20,8 @@ namespace TravelingApplication
 
             builder.Services.AddControllers();
             //builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationMiddlewareResultHandler>();
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("")));
+            
+    
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -125,6 +125,10 @@ namespace TravelingApplication
 
             builder.Services.Configure<JwtSettings>(
             builder.Configuration.GetSection("JwtSettings"));
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(
+            builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddFluentValidationClientsideAdapters();

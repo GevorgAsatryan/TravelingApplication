@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Metrics;
@@ -20,11 +21,13 @@ namespace TravelingApplication.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
 
         private readonly JwtSettings _jwtSettings;
+        private readonly AppDbContext _db;
 
-        public ClientController(IHttpClientFactory httpClientFactory, IOptions<JwtSettings> jwtSettings)
+        public ClientController(IHttpClientFactory httpClientFactory, IOptions<JwtSettings> jwtSettings, AppDbContext db)
         {
             _httpClientFactory = httpClientFactory;
             _jwtSettings = jwtSettings.Value;
+            _db = db;
         }
 
 
@@ -33,11 +36,22 @@ namespace TravelingApplication.Controllers
         {
             string username = name;
             string userEmail = email;
-
-            var user = new User(name, email);
+           
+            UserService userService = new UserService(_db);
+         
             string secretKey = _jwtSettings.SecretKey;
             string token = TokenManagement.GenerateJwtToken(username, userEmail, secretKey);
             string validation = TokenManagement.ValidateToken(token, secretKey);
+            var user = await userService.FindUser(userEmail);
+            if (user is null)
+            {
+                await userService.AddUser(new User() { Email = userEmail, Name = username, Token = token });
+            }
+            else
+            {
+                await userService.UpdateUserToken(user, token);
+            }
+
             return "Your token is  " + $"{token}\n\n{validation}";
         }
 
