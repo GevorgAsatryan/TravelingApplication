@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -6,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Metrics;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -22,37 +24,69 @@ namespace TravelingApplication.Controllers
 
         private readonly JwtSettings _jwtSettings;
         private readonly AppDbContext _db;
-
-        public ClientController(IHttpClientFactory httpClientFactory, IOptions<JwtSettings> jwtSettings, AppDbContext db)
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly BookingRequestService _bookingRequestService;
+        public ClientController(IHttpClientFactory httpClientFactory, IOptions<JwtSettings> jwtSettings, AppDbContext db, UserManager<User> userManager, SignInManager<User> signInManager, BookingRequestService bookingRequestService)
         {
             _httpClientFactory = httpClientFactory;
             _jwtSettings = jwtSettings.Value;
             _db = db;
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _bookingRequestService = bookingRequestService;
+        }
+
+
+        [HttpGet("Register")]
+        public async Task<IActionResult> Register([FromQuery] GetUserRegisterRequestModel model)
+        {
+            var existingUser = await _userManager.FindByEmailAsync(model.Email);
+
+            if (existingUser != null)
+            {
+                return BadRequest("Email is already in use.");
+            }
+
+            var user = new User
+            {
+                UserName = model.Username,
+                Email = model.Email
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok("User created successfully");
         }
 
 
         [HttpGet("Login")]
-        public async Task<string> Login([Required][FromQuery(Name = "Name")] string name, [Required][EmailAddress(ErrorMessage = "Invalid email address")][FromQuery(Name = "Email")] string email)
+        public async Task<string> Login([FromQuery] GetUserLoginRequestModel model)
         {
-            string username = name;
-            string userEmail = email;
-           
-            UserService userService = new UserService(_db);
-         
-            string secretKey = _jwtSettings.SecretKey;
-            string token = TokenManagement.GenerateJwtToken(username, userEmail, secretKey);
-            string validation = TokenManagement.ValidateToken(token, secretKey);
-            var user = await userService.FindUser(userEmail);
-            if (user is null)
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
             {
-                await userService.AddUser(new User() { Email = userEmail, Name = username, Token = token });
+                return "Invalid email or password";
             }
-            else
+            var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+            
+            if (!result.Succeeded)
             {
-                await userService.UpdateUserToken(user, token);
+                return "Invalid email or password";
             }
 
-            return "Your token is  " + $"{token}\n\n{validation}";
+            string secretKey = _jwtSettings.SecretKey;
+            string token = TokenManagement.GenerateJwtToken(user.Id ,model.Email, secretKey);
+            string validation = TokenManagement.ValidateToken(token, secretKey);
+            user.Token = token;
+            await _userManager.UpdateAsync(user);
+            return "Logged In Successfully\n\n Your token is  " + $"{token}\n\n{validation}";
         }
 
         [HttpGet("Weather")]
@@ -131,11 +165,16 @@ namespace TravelingApplication.Controllers
                 return "Not Found";
             }
             var content = await response.Content.ReadAsStringAsync();
-            return content;
+
+            var userId = User.FindFirst("id")?.Value;
+
+
+            await _bookingRequestService.AddOrUpdateBookingRequest(new BookingRequest() { UserId = userId ,Link = content});
+            return $"Copy and paste this link in your browser    {content}";
         }
         [HttpGet("Book Flight")]
         [Authorize]
-        public async Task Flight([FromQuery] GetFlightBookingRequestModel model)
+        public async Task<string> Flight([FromQuery] GetFlightBookingRequestModel model)
         {
             var flightDetails = new
             {
@@ -148,6 +187,7 @@ namespace TravelingApplication.Controllers
             var httpClient = _httpClientFactory.CreateClient("FlightClient");
 
             var json = JsonSerializer.Serialize(flightDetails);
+
             StringContent stringContent = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await httpClient.PostAsync("Booking", stringContent);
             try
@@ -156,8 +196,14 @@ namespace TravelingApplication.Controllers
             }
             catch (Exception ex)
             {
-                NotFound();
+                return ex.Message;
             }
+            var content = await response.Content.ReadAsStringAsync();
+
+            var userId = User.FindFirst("id")?.Value;
+
+            await _bookingRequestService.AddOrUpdateBookingRequest(new BookingRequest() { Link = content, UserId = userId });
+            return $"Copy and paste this link in your browser    {content}";
         }
         [HttpGet("Additional Information")]
         public async Task<string> Information([FromQuery] GetInformationRequestModel model)

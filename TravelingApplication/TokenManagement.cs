@@ -7,15 +7,15 @@ namespace TravelingApplication
 {
     public static class TokenManagement
     {
-        public static string GenerateJwtToken(string name, string email, string secretKey)
+        public static string GenerateJwtToken(string id, string email, string secretKey)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim("username", name),
-                new Claim("email", email),
+                new Claim("id", id),
+                new Claim("email", email)
             };
 
             var token = new JwtSecurityToken(
@@ -56,7 +56,7 @@ namespace TravelingApplication
             }
         }
 
-        public static string DecodeToken(string token)
+        public static string DecodeToken(string? token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
@@ -67,7 +67,7 @@ namespace TravelingApplication
                 decodedResult += $"{decodedInfo.Key} {decodedInfo.Value}\n";
             }
 
-            return "Token is valied\n" + $"{decodedResult}";
+            return "Token is valid\n" + $"{decodedResult}";
         }
     }
 }

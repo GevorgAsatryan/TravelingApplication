@@ -8,7 +8,7 @@ namespace FlightBookingService.Controllers
     public class BookingController : ControllerBase
     {
         [HttpPost]
-        public async Task Book([FromBody] FlightDetails flightDetails)
+        public async Task<string> Book([FromBody] FlightDetails flightDetails)
         {
             string url = "";
 
@@ -18,12 +18,14 @@ namespace FlightBookingService.Controllers
             }
             else
             {
-                url = $"https://www.google.com/travel/flights?q=from%3A{flightDetails.FromCity}%20to%3A{flightDetails.ToCity}%20on%20{flightDetails.Departing:yyyy-MM-dd}\r\n";
+                url = $"https://www.google.com/travel/flights?q=from:{flightDetails.FromCity} to:{flightDetails.ToCity} on {flightDetails.Departing:yyyy-MM-dd}\r\n";
             }
-            
-            
+
+
 
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+
+            return url;
         }
     }
 }

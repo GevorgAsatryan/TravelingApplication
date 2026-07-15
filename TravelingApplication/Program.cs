@@ -7,7 +7,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-
+using Microsoft.AspNetCore.Identity;
 namespace TravelingApplication
 {
     public class Program
@@ -26,6 +26,8 @@ namespace TravelingApplication
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
 
+
+            
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
@@ -58,6 +60,12 @@ namespace TravelingApplication
                 });
 
             var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:SecretKey"]);
+
+            builder.Services
+            .AddIdentity<User, IdentityRole>()
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
+
 
             builder.Services.AddAuthentication(options =>
             {
@@ -130,6 +138,7 @@ namespace TravelingApplication
             options.UseSqlServer(
             builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddFluentValidationClientsideAdapters();
             builder.Services.AddValidatorsFromAssemblyContaining<GetWeatherRequestModelValidator>();
@@ -137,9 +146,14 @@ namespace TravelingApplication
             builder.Services.AddValidatorsFromAssemblyContaining<GetHotelBookingRequestModelValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<GetFlightBookingRequestModelValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<GetExchangeRequestModelValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<GetUserRegisterRequestModelValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<GetUserLoginRequestModelValidator>();
 
+            builder.Services.AddScoped<BookingRequestService>();
 
             var app = builder.Build();
+
+            app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -150,8 +164,6 @@ namespace TravelingApplication
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
-            app.UseHttpsRedirection();
 
             app.MapControllers();
 
