@@ -130,6 +130,10 @@ namespace TravelingApplication
             {
                 client.BaseAddress = new Uri("https://localhost:7163/");
             });
+            builder.Services.AddHttpClient("FoodInformationClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7046");
+            });
 
             builder.Services.Configure<JwtSettings>(
             builder.Configuration.GetSection("JwtSettings"));
@@ -148,6 +152,7 @@ namespace TravelingApplication
             builder.Services.AddValidatorsFromAssemblyContaining<GetExchangeRequestModelValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<GetUserRegisterRequestModelValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<GetUserLoginRequestModelValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<GetFoodInformationRequestModelValidator>();
 
             builder.Services.AddScoped<BookingRequestService>();
 

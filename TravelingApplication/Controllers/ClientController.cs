@@ -205,6 +205,27 @@ namespace TravelingApplication.Controllers
             await _bookingRequestService.AddOrUpdateBookingRequest(new BookingRequest() { Link = content, UserId = userId });
             return $"Copy and paste this link in your browser    {content}";
         }
+
+        [HttpGet("Popular Food")]
+        public async Task<string> Food([FromQuery] GetFoodInformationRequestModel model)
+        {
+            var country = $"\"{model.Country}\"";
+            var httpClient = _httpClientFactory.CreateClient("FoodInformationClient");
+            StringContent stringContent = new StringContent(country, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PostAsync("FoodInformation", stringContent);
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch(Exception ex)
+            {
+                return "Not Found";
+            }
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
+
         [HttpGet("Additional Information")]
         public async Task<string> Information([FromQuery] GetInformationRequestModel model)
         {
