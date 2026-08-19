@@ -8,6 +8,8 @@ using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
+using TravelingApplication.Configuration;
+
 namespace TravelingApplication
 {
     public class Program
