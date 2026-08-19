@@ -12,6 +12,10 @@ TravelingApplication
 
 The main entry point of the project. It initializes and coordinates all other services, manages user requests, and handles authentication and authorization for secure access. All functionality—including weather, currency, hotel bookings, and flight reservations—is available through this application.
 
+Identity System & Database
+
+The project uses ASP.NET Core Identity to securely manage users, authentication, and authorization. User accounts and identity-related data are stored and managed through Identity, providing built-in support for secure password handling, roles, claims, and account management. Entity Framework Core (EF Core) is used as the ORM for database access and migrations, while Microsoft SQL Server serves as the primary database for storing user data.
+
 Authentication & Authorization
 
 Users provide their name and email to obtain a JWT token. To access protected endpoints such as Hotel Booking and Flights Booking, users must include this token in the request headers. This ensures only authenticated users can perform bookings.
