@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using WeatherService.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace WeatherService.Controllers
 {
@@ -15,9 +18,12 @@ namespace WeatherService.Controllers
     {
         private readonly IDistributedCache _distributedCache;
 
-        public WeatherController(IDistributedCache distributedCache)
+        private readonly ApiKeys _apiKeys;
+
+        public WeatherController(IDistributedCache distributedCache, IOptions<ApiKeys> apiKeys)
         {
             _distributedCache = distributedCache;
+            _apiKeys = apiKeys.Value;
         }
 
         [HttpPost]
@@ -52,7 +58,7 @@ namespace WeatherService.Controllers
 
         public async Task<string> GetWeatherData(string cityAndCountry)
         {
-            string apiKey = "FM4PSAFFWRL25LL595KN6NV2V";
+            string apiKey = _apiKeys.Weather;
             string location = $"{cityAndCountry}";
             string url = $"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{location}?unitGroup=metric&key={apiKey}&contentType=json";
             HttpClient httpClient = new HttpClient();

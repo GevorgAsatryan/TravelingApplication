@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using CurrencyExchangeRateService.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace CurrencyExchangeRateService.Controllers
 {
@@ -7,10 +9,16 @@ namespace CurrencyExchangeRateService.Controllers
     [Route("[controller]")]
     public class ExchangeController : ControllerBase
     {
+        private readonly ApiKeys _apiKeys;
+
+        public ExchangeController(IOptions<ApiKeys> apiKeys)
+        {
+            _apiKeys = apiKeys.Value;
+        }
         [HttpPost]
         public async Task<string> Exchange([FromBody] ExchangeDetails details)
         {
-            string apiKey = "JtAeBGKoEDVw3Yxce4rg0wE4U5lyq6QyXfJ5XgoPwL6nlHOjvUpOpGG9nAIIIyWT";
+            string apiKey = _apiKeys.Currency;
 
             string url = $"https://api.unirateapi.com/api/convert?api_key={apiKey}&from={details.currency}&to={details.preferredCurrency}&amount={details.amount}";
 

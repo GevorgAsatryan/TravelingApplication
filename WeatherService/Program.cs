@@ -1,3 +1,5 @@
+using WeatherService.Configuration;
+
 namespace WeatherService
 {
     public class Program
@@ -7,6 +9,8 @@ namespace WeatherService
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.Configure<ApiKeys>(
+            builder.Configuration.GetSection("ApiKeys"));
 
             builder.Services.AddControllers();
             builder.Services.AddDistributedMemoryCache();
