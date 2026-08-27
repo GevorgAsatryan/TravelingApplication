@@ -111,31 +111,31 @@ namespace TravelingApplication
             builder.Services.AddHttpClient("WeatherClient", client =>
             {
                 client.BaseAddress = new Uri("https://localhost:7028/");
-            });
+            }).AddStandardResilienceHandler();
 
             builder.Services.AddHttpClient("ExchangeClient", client =>
             {
                 client.BaseAddress = new Uri("https://localhost:7140/");
-            });
+            }).AddStandardResilienceHandler();
 
             builder.Services.AddHttpClient("HotelClient", client =>
             {
                 client.BaseAddress = new Uri("https://localhost:7077/");
-            });
+            }).AddStandardResilienceHandler();
 
             builder.Services.AddHttpClient("FlightClient", client =>
             {
                 client.BaseAddress = new Uri("https://localhost:7044/");
-            });
+            }).AddStandardResilienceHandler();
 
             builder.Services.AddHttpClient("InformationClient", client =>
             {
                 client.BaseAddress = new Uri("https://localhost:7163/");
-            });
+            }).AddStandardResilienceHandler();
             builder.Services.AddHttpClient("FoodInformationClient", client =>
             {
                 client.BaseAddress = new Uri("https://localhost:7046");
-            });
+            }).AddStandardResilienceHandler();
 
             builder.Services.Configure<JwtSettings>(
             builder.Configuration.GetSection("JwtSettings"));

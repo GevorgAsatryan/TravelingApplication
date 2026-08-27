@@ -93,16 +93,20 @@ namespace TravelingApplication.Controllers
         [HttpGet("Weather")]
         public async Task<string> Get([FromQuery] GetWeatherRequestModel model)
         {
-            string chosenCityAndCountry = $"\"{model.City},{model.Country}\"";
+            //string chosenCityAndCountry = $"\"{model.City},{model.Country}\"";
 
             var httpClient = _httpClientFactory.CreateClient("WeatherClient");
 
-            var responseContent = new StringContent(
-                chosenCityAndCountry,
-                Encoding.UTF8,
-                "application/json");
+            //var responseContent = new StringContent(
+            //    chosenCityAndCountry,
+            //    Encoding.UTF8,
+            //    "application/json");
 
-            var response = await httpClient.PostAsync("Weather", responseContent);
+            string chosenCityAndCountry = $"{model.City},{model.Country}";
+
+            var encodedValue = Uri.EscapeDataString(chosenCityAndCountry);
+
+            var response = await httpClient.GetAsync($"Weather?cityAndCountry={encodedValue}");
 
             response.EnsureSuccessStatusCode();
 
