@@ -1,13 +1,17 @@
 
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Http.Resilience;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Polly;
+using Polly.Timeout;
+using System.Text;
+using System.Threading.RateLimiting;
 using TravelingApplication.Configuration;
 
 namespace TravelingApplication
@@ -107,35 +111,304 @@ namespace TravelingApplication
             });
 
             builder.Services.AddAuthorization();
-
             builder.Services.AddHttpClient("WeatherClient", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7028/");
-            }).AddStandardResilienceHandler();
+                client.BaseAddress = new Uri(builder.Configuration["ExternalServices:Weather:BaseAddress"]!);
+            })
+            .AddResilienceHandler("WeatherResilience", resilienceBuilder =>
+            {
+                // 1. Rate Limiter
+                resilienceBuilder.AddRateLimiter(new HttpRateLimiterStrategyOptions
+                {
+                    DefaultRateLimiterOptions = new ConcurrencyLimiterOptions
+                    {
+                        PermitLimit = 50,
+                        QueueLimit = 0
+                    }
+                });
+
+                // 2. Total Request Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(30)
+                });
+
+                // 3. Retry
+                resilienceBuilder.AddRetry(new HttpRetryStrategyOptions
+                {
+                    MaxRetryAttempts = 3,
+                    Delay = TimeSpan.FromSeconds(1),
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true
+
+                    //I don't have a ShouldHandler here, I'm using default to retry transient HTTP failures.
+                });
+
+                // 4. Circuit Breaker
+                resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+                {
+                    FailureRatio = 0.5,
+                    SamplingDuration = TimeSpan.FromSeconds(30),
+                    MinimumThroughput = 10,
+                    BreakDuration = TimeSpan.FromSeconds(10)
+                });
+
+                // 5. Attempt Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(5)
+                });
+            });
+
 
             builder.Services.AddHttpClient("ExchangeClient", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7140/");
-            }).AddStandardResilienceHandler();
+                client.BaseAddress = new Uri(builder.Configuration["ExternalServices:Exchange:BaseAddress"]!);
+            })
+            .AddResilienceHandler("ExchangeResilience", resilienceBuilder =>
+            {
+                // 1. Rate Limiter
+                resilienceBuilder.AddRateLimiter(new HttpRateLimiterStrategyOptions
+                {
+                    DefaultRateLimiterOptions = new ConcurrencyLimiterOptions
+                    {
+                        PermitLimit = 50,
+                        QueueLimit = 0
+                    }
+                });
+
+                // 2. Total Request Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(30)
+                });
+
+                // 3. Retry
+                resilienceBuilder.AddRetry(new HttpRetryStrategyOptions
+                {
+                    MaxRetryAttempts = 3,
+                    Delay = TimeSpan.FromSeconds(1),
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true
+
+                    //I don't have a ShouldHandler here, I'm using default to retry transient HTTP failures.
+                });
+
+                // 4. Circuit Breaker
+                resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+                {
+                    FailureRatio = 0.5,
+                    SamplingDuration = TimeSpan.FromSeconds(30),
+                    MinimumThroughput = 10,
+                    BreakDuration = TimeSpan.FromSeconds(10)
+                });
+
+                // 5. Attempt Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(5)
+                });
+            });
+
 
             builder.Services.AddHttpClient("HotelClient", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7077/");
-            }).AddStandardResilienceHandler();
+                client.BaseAddress = new Uri(builder.Configuration["ExternalServices:Hotel:BaseAddress"]!);
+            })
+            .AddResilienceHandler("HotelResilience", resilienceBuilder =>
+            {
+                // 1. Rate Limiter
+                resilienceBuilder.AddRateLimiter(new HttpRateLimiterStrategyOptions
+                {
+                    DefaultRateLimiterOptions = new ConcurrencyLimiterOptions
+                    {
+                        PermitLimit = 50,
+                        QueueLimit = 0
+                    }
+                });
+
+                // 2. Total Request Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(30)
+                });
+
+                // 3. Retry
+                resilienceBuilder.AddRetry(new HttpRetryStrategyOptions
+                {
+                    MaxRetryAttempts = 3,
+                    Delay = TimeSpan.FromSeconds(1),
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true
+
+                    //I don't have a ShouldHandler here, I'm using default to retry transient HTTP failures.
+                });
+
+                // 4. Circuit Breaker
+                resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+                {
+                    FailureRatio = 0.5,
+                    SamplingDuration = TimeSpan.FromSeconds(30),
+                    MinimumThroughput = 10,
+                    BreakDuration = TimeSpan.FromSeconds(10)
+                });
+
+                // 5. Attempt Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(5)
+                });
+            });
+
 
             builder.Services.AddHttpClient("FlightClient", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7044/");
-            }).AddStandardResilienceHandler();
+                client.BaseAddress = new Uri(builder.Configuration["ExternalServices:Flight:BaseAddress"]!);
+            })
+            .AddResilienceHandler("FlightResilience", resilienceBuilder =>
+            {
+                // 1. Rate Limiter
+                resilienceBuilder.AddRateLimiter(new HttpRateLimiterStrategyOptions
+                {
+                    DefaultRateLimiterOptions = new ConcurrencyLimiterOptions
+                    {
+                        PermitLimit = 50,
+                        QueueLimit = 0
+                    }
+                });
+
+                // 2. Total Request Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(30)
+                });
+
+                // 3. Retry
+                resilienceBuilder.AddRetry(new HttpRetryStrategyOptions
+                {
+                    MaxRetryAttempts = 3,
+                    Delay = TimeSpan.FromSeconds(1),
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true
+
+                    //I don't have a ShouldHandler here, I'm using default to retry transient HTTP failures.
+                });
+
+                // 4. Circuit Breaker
+                resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+                {
+                    FailureRatio = 0.5,
+                    SamplingDuration = TimeSpan.FromSeconds(30),
+                    MinimumThroughput = 10,
+                    BreakDuration = TimeSpan.FromSeconds(10)
+                });
+
+                // 5. Attempt Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(5)
+                });
+            });
+
 
             builder.Services.AddHttpClient("InformationClient", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7163/");
-            }).AddStandardResilienceHandler();
+                client.BaseAddress = new Uri(builder.Configuration["ExternalServices:Information:BaseAddress"]!);
+            })
+            .AddResilienceHandler("InformationResilience", resilienceBuilder =>
+            {
+                // 1. Rate Limiter
+                resilienceBuilder.AddRateLimiter(new HttpRateLimiterStrategyOptions
+                {
+                    DefaultRateLimiterOptions = new ConcurrencyLimiterOptions
+                    {
+                        PermitLimit = 50,
+                        QueueLimit = 0
+                    }
+                });
+
+                // 2. Total Request Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(30)
+                });
+
+                // 3. Retry
+                resilienceBuilder.AddRetry(new HttpRetryStrategyOptions
+                {
+                    MaxRetryAttempts = 3,
+                    Delay = TimeSpan.FromSeconds(1),
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true
+
+                    //I don't have a ShouldHandler here, I'm using default to retry transient HTTP failures.
+                });
+
+                // 4. Circuit Breaker
+                resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+                {
+                    FailureRatio = 0.5,
+                    SamplingDuration = TimeSpan.FromSeconds(30),
+                    MinimumThroughput = 10,
+                    BreakDuration = TimeSpan.FromSeconds(10)
+                });
+
+                // 5. Attempt Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(5)
+                });
+            });
+
+
             builder.Services.AddHttpClient("FoodInformationClient", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7046");
-            }).AddStandardResilienceHandler();
+                client.BaseAddress = new Uri(builder.Configuration["ExternalServices:FoodInformation:BaseAddress"]!);
+            })
+            .AddResilienceHandler("FoodInformationResilience", resilienceBuilder =>
+            {
+                // 1. Rate Limiter
+                resilienceBuilder.AddRateLimiter(new HttpRateLimiterStrategyOptions
+                {
+                    DefaultRateLimiterOptions = new ConcurrencyLimiterOptions
+                    {
+                        PermitLimit = 50,
+                        QueueLimit = 0
+                    }
+                });
+
+                // 2. Total Request Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(30)
+                });
+
+                // 3. Retry
+                resilienceBuilder.AddRetry(new HttpRetryStrategyOptions
+                {
+                    MaxRetryAttempts = 3,
+                    Delay = TimeSpan.FromSeconds(1),
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true
+
+                    //I don't have a ShouldHandler here, I'm using default to retry transient HTTP failures.
+                });
+
+                // 4. Circuit Breaker
+                resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+                {
+                    FailureRatio = 0.5,
+                    SamplingDuration = TimeSpan.FromSeconds(30),
+                    MinimumThroughput = 10,
+                    BreakDuration = TimeSpan.FromSeconds(10)
+                });
+
+                // 5. Attempt Timeout
+                resilienceBuilder.AddTimeout(new TimeoutStrategyOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(5)
+                });
+            });
 
             builder.Services.Configure<JwtSettings>(
             builder.Configuration.GetSection("JwtSettings"));

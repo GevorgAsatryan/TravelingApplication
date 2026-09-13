@@ -91,7 +91,7 @@ namespace TravelingApplication.Controllers
         }
 
         [HttpGet("Weather")]
-        public async Task<string> Get([FromQuery] GetWeatherRequestModel model)
+        public async Task<string> Get(GetWeatherRequestModel model)
         {
             //string chosenCityAndCountry = $"\"{model.City},{model.Country}\"";
 
@@ -114,7 +114,7 @@ namespace TravelingApplication.Controllers
         }
 
         [HttpGet("Exchange")]
-        public async Task<string> Exchange([FromQuery] GetExchangeRequestModel model)
+        public async Task<string> Exchange(GetExchangeRequestModel model)
         {
 
             var details = new
@@ -127,8 +127,11 @@ namespace TravelingApplication.Controllers
             var httpClient = _httpClientFactory.CreateClient("ExchangeClient");
 
             var json = JsonSerializer.Serialize(details);
-            StringContent stringContent = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await httpClient.PostAsync("Exchange", stringContent);
+
+            //StringContent stringContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.GetAsync($"Exchange?json={Uri.EscapeDataString(json)}");
+
             try
             {
                 response.EnsureSuccessStatusCode();
@@ -144,7 +147,7 @@ namespace TravelingApplication.Controllers
 
         [HttpGet("Book Hotel")]
         [Authorize]
-        public async Task<string> BookHotel([FromQuery] GetHotelBookingRequestModel model)
+        public async Task<string> BookHotel(GetHotelBookingRequestModel model)
         {
     
             var bookingRequest = new
@@ -179,7 +182,7 @@ namespace TravelingApplication.Controllers
         }
         [HttpGet("Book Flight")]
         [Authorize]
-        public async Task<string> Flight([FromQuery] GetFlightBookingRequestModel model)
+        public async Task<string> Flight(GetFlightBookingRequestModel model)
         {
             var flightDetails = new
             {
@@ -232,7 +235,7 @@ namespace TravelingApplication.Controllers
         }
 
         [HttpGet("Additional Information")]
-        public async Task<string> Information([FromQuery] GetInformationRequestModel model)
+        public async Task<string> Information(GetInformationRequestModel model)
         {
             string chosenCountry = $"\"{model.Country}\"";
 
