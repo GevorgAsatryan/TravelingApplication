@@ -26,8 +26,8 @@ namespace WeatherService.Controllers
             _apiKeys = apiKeys.Value;
         }
 
-        [HttpPost]
-        public async Task<string> Post([FromBody] string cityAndCountry)
+        [HttpGet]
+        public async Task<string> Get([FromQuery] string cityAndCountry)
         {
             var cachedResult = await _distributedCache.GetStringAsync(cityAndCountry);
 
@@ -35,20 +35,20 @@ namespace WeatherService.Controllers
             {
                 Root weatherData = JsonSerializer.Deserialize<Root>(cachedResult);
 
-                string futureForcast = "";
+                string futureForecast = "";
 
                 foreach (var day in weatherData.days)
                 {
-                    futureForcast += $"Date: {day.datetime}\n\n" +
+                    futureForecast += $"Date: {day.datetime}\n\n" +
                           $"Temperature: {day.tempmax}°C / {day.tempmin}°C\n" +
                           $"Humidity: {day.humidity}%\n" +
                           $"Conditions: {day.conditions}\n" +
                           $"Sunrise: {day.sunrise}\n" +
                           $"Sunset: {day.sunset}\n\n";
                 }
-                futureForcast = $"Weather in {cityAndCountry}\n\n" + futureForcast;
+                futureForecast = $"Weather in {cityAndCountry}\n\n" + futureForecast;
 
-                return futureForcast;
+                return futureForecast;
             }
 
             string dataResult = await GetWeatherData(cityAndCountry);
