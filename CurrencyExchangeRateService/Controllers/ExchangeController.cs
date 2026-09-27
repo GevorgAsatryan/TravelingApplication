@@ -11,16 +11,29 @@ namespace CurrencyExchangeRateService.Controllers
     {
         private readonly ApiKeys _apiKeys;
 
+        private static int attempt = 0;
+
         public ExchangeController(IOptions<ApiKeys> apiKeys)
         {
             _apiKeys = apiKeys.Value;
         }
-        [HttpPost]
-        public async Task<string> Exchange([FromBody] ExchangeDetails details)
+        [HttpGet]
+        public async Task<string> Exchange([FromQuery] string json)
         {
+            //attempt++;
+
+            //Console.WriteLine($"Service attempt: {attempt}");
+
+            //if (attempt <= 2)
+            //{
+            //    throw new Exception();
+            //}
+
             string apiKey = _apiKeys.Currency;
 
-            string url = $"https://api.unirateapi.com/api/convert?api_key={apiKey}&from={details.currency}&to={details.preferredCurrency}&amount={details.amount}";
+            var details = JsonSerializer.Deserialize<ExchangeDetails>(json);
+
+            string url = $"https://api.unirateapi.com/api/convert?api_key={apiKey}&from={details?.currency}&to={details?.preferredCurrency}&amount={details?.amount}";
 
             using (HttpClient httpClient = new HttpClient())
             {
